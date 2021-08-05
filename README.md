@@ -1,5 +1,5 @@
 # Transaction Analyser
-This is a functional Java application implemented based on the requirements specified in the coding challenge document.
+This is a functional Kotlin application implemented based on the requirements specified in the coding challenge document.
 
 ## How to run/build/test the app
 Dependencies: JDK11
@@ -26,5 +26,7 @@ Dependencies: JDK11
     ```
 - Test results:
     ```
-    
+    me803159@Jixuans-MBP-2 transaction-analyser-kotlin % ./gradlew clean test
+  BUILD SUCCESSFUL in 3s
+  7 actionable tasks: 7 executed
     ```

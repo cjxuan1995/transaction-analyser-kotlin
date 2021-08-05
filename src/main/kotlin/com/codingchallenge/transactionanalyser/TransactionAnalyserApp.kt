@@ -24,6 +24,6 @@ class TransactionAnalyserApp {
 }
 
 
-fun main(args: Array<String>){
+fun main(){
     TransactionAnalyserApp().runApp()
 }
