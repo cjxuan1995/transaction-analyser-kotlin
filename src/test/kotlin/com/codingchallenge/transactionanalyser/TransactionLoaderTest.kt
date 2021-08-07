@@ -1,52 +1,64 @@
 package com.codingchallenge.transactionanalyser
 
-import com.codingchallenge.transactionanalyser.domain.TransactionType
+import com.codingchallenge.transactionanalyser.domain.TransactionBuilder
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 internal class TransactionLoaderTest{
     private val transactionLoader = TransactionLoader(
         this::class.java.classLoader.getResourceAsStream("transactions.csv") ?: throw IllegalArgumentException("File not found")
     )
-    private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
-    @Test
-    fun givenCsv_WhenLoadTransactionsFromCsv_ThenTheExpectedTransactionsReturned(){
-        val transactions = transactionLoader.loadTransactionsFromCsv()
-        assertEquals(transactions.size, 5);
+    @Nested
+    inner class TransactionsLoadedFromCsv {
+        private val transactions = transactionLoader.loadTransactionsFromCsv()
 
-        assertEquals(transactions[0].transactionId, "TX10001")
-        assertEquals(transactions.get(0).fromAccountId, "ACC334455")
-        assertEquals(transactions[0].transactionId, "TX10001")
-        assertEquals(transactions[0].fromAccountId, "ACC334455")
-        assertEquals(transactions[0].toAccountId, "ACC778899")
-        assertEquals(transactions[0].createdAt, LocalDateTime.parse("20/10/2018 12:47:55", formatter))
-        assertEquals(transactions[0].amount.compareTo(BigDecimal.valueOf(25.00)), 0)
-        assertEquals(transactions[0].transactionType, TransactionType.PAYMENT)
-        assertNull(transactions[0].relatedTransaction) // PAYMENT transaction should have null relatedTransaction
+        @Test
+        fun `should load all the transactions`(){
+            assertEquals(transactions.size, 5)
+        }
 
+        @Test
+        fun `should load the first payment transaction`(){
+            val expectedTransaction = TransactionBuilder("TX10001")
+                .withFromAccountId("ACC334455")
+                .withToAccountId("ACC778899")
+                .withCreatedAt("20/10/2018 12:47:55")
+                .withAmount("25.00")
+                .withType("PAYMENT")
+                .withRelatedTransaction(null)
+                .build()
 
-        assertEquals(transactions[1].transactionId, "TX10002")
-        assertEquals(transactions[1].fromAccountId, "ACC334455")
-        assertEquals(transactions[1].toAccountId, "ACC998877")
-        assertEquals(transactions[1].createdAt, LocalDateTime.parse("20/10/2018 17:33:43", formatter))
-        assertEquals(transactions[1].amount.compareTo(BigDecimal.valueOf(10.50)), 0)
-        assertEquals(transactions[1].transactionType, TransactionType.PAYMENT)
-        assertNull(transactions[1].relatedTransaction)
+            assertEquals(expectedTransaction, transactions[0])
+        }
 
-        assertEquals(transactions[3].transactionId, "TX10004")
-        assertEquals(transactions[3].fromAccountId, "ACC334455")
-        assertEquals(transactions[3].toAccountId, "ACC998877")
-        assertEquals(transactions[3].createdAt, LocalDateTime.parse("20/10/2018 19:45:00", formatter))
-        assertEquals(transactions[3].amount.compareTo(BigDecimal.valueOf(10.50)), 0)
-        assertEquals(transactions[3].transactionType, TransactionType.REVERSAL)
-        assertEquals(
-            transactions[3].relatedTransaction,
-            "TX10002"
-        ) // REVERSAL transaction should have non-null relatedTransaction
+        @Test
+        fun `should load the second payment transaction`(){
+            val expectedTransaction = TransactionBuilder("TX10002")
+                .withFromAccountId("ACC334455")
+                .withToAccountId("ACC998877")
+                .withCreatedAt("20/10/2018 17:33:43")
+                .withAmount("10.50")
+                .withType("PAYMENT")
+                .withRelatedTransaction(null)
+                .build()
 
+            assertEquals(expectedTransaction, transactions[1])
+        }
+
+        @Test
+        fun `should load the fourth reversal transaction`(){
+            val expectedTransaction = TransactionBuilder("TX10004")
+                .withFromAccountId("ACC334455")
+                .withToAccountId("ACC998877")
+                .withCreatedAt("20/10/2018 19:45:00")
+                .withAmount("10.50")
+                .withType("REVERSAL")
+                .withRelatedTransaction("TX10002")
+                .build()
+
+            assertEquals(expectedTransaction, transactions[3])
+        }
     }
 }
