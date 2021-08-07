@@ -2,34 +2,42 @@ package com.codingchallenge.transactionanalyser
 
 import com.codingchallenge.transactionanalyser.domain.Transaction
 import com.codingchallenge.transactionanalyser.domain.TransactionBuilder
+import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVParser
+import org.apache.commons.csv.CSVRecord
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.util.stream.Collectors
 
 class TransactionLoader(private val input: InputStream) {
     fun loadTransactionsFromCsv(): List<Transaction>{
         val transactions: List<Transaction>
         BufferedReader(InputStreamReader(input)).use {
-            transactions = it.lines()
-                .skip(1)
-                .map(this::buildTransactionFromCsvLine)
-                .collect(Collectors.toList())
+            val csvParser = CSVParser(it,
+                CSVFormat.DEFAULT.builder()
+                    .setHeader(Headers::class.java)
+                    .setSkipHeaderRecord(true)
+                    .setIgnoreHeaderCase(true)
+                    .setTrim(true)
+                    .setNullString("")
+                    .build())
+            transactions = csvParser.map { csvRecord -> buildTransactionFromCsvLine(csvRecord) }
         }
         return transactions
     }
 
-    private fun buildTransactionFromCsvLine(line: String): Transaction{
-        val values = line.split(",").map { it.trim() }
-        var transactionBuilder = TransactionBuilder(values[0])
-            .withFromAccountId(values[1])
-            .withToAccountId(values[2])
-            .withCreatedAt(values[3])
-            .withAmount(values[4])
-            .withType(values[5])
-        if (values.size == 7){
-            transactionBuilder = transactionBuilder.withRelatedTransaction(values[6])
-        }
+    private fun buildTransactionFromCsvLine(record: CSVRecord): Transaction{
+        val transactionBuilder = TransactionBuilder(record.get(Headers.transactionId))
+            .withFromAccountId(record.get(Headers.fromAccountId))
+            .withToAccountId(record.get(Headers.toAccountId))
+            .withCreatedAt(record.get(Headers.createdAt))
+            .withAmount(record.get(Headers.amount))
+            .withType(record.get(Headers.transactionType))
+            .withRelatedTransaction(record.get(Headers.relatedTransaction))
         return transactionBuilder.build()
+    }
+
+    enum class Headers{
+        transactionId, fromAccountId, toAccountId, createdAt, amount, transactionType, relatedTransaction
     }
 }

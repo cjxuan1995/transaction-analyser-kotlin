@@ -38,7 +38,7 @@ class TransactionBuilder(private val transactionId: String) {
         return this
     }
 
-    fun withRelatedTransaction(relatedTransaction: String): TransactionBuilder{
+    fun withRelatedTransaction(relatedTransaction: String?): TransactionBuilder{
         this.relatedTransaction = relatedTransaction
         return this
     }
